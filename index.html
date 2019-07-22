@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link rel="stylesheet" href="/style/main.css">
+</head>
+
+<body>
+  <div class="navbar-fixed">
+    <nav>
+      <div class="nav-wrapper">
+        <div class="container">
+          <a href="#!" class="brand-logo">Logo</a>
+          <ul class="right hide-on-med-and-down">
+            <li><a href="#">Profile</a></li>
+            <li><a href="#">Configuration</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+  <div class="row">
+
+    <div class="col s12 m4 l2">
+    </div>
+
+    <div class="col s12 m8 l10">
+      <div>
+        <a class="waves-effect waves-light btn modal-trigger postion-change" href="#modal1">Tambah</a>
+
+        <!-- Modal Structure -->
+        <div id="modal1" class="modal">
+          <div class="modal-content">
+            <h4>Input Data</h4>
+            <div class="row">
+              <form class="col s12">
+                <div class="row">
+                  <div class="input-field col s6">
+                    <input placeholder="Placeholder" id="first_name" type="text" class="validate">
+                    <label for="first_name">First Name</label>
+                  </div>
+                  <div class="input-field col s6">
+                    <input id="last_name" type="text" class="validate">
+                    <label for="last_name">Last Name</label>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="input-field col s12">
+                    <input id="password" type="password" class="validate">
+                    <label for="password">Password</label>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="input-field col s12">
+                    <input id="email" type="email" class="validate">
+                    <label for="email">Email</label>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <a href="#!" id="saveData" class="modal-close waves-effect waves-green btn-flat">Agree</a>
+          </div>
+        </div>
+        <table class="responsive-table" id="tabel_user">
+            <tr>
+              <th>id</th>
+              <th>Nama</th>
+              <th>email</th>
+              <th>password</th>
+              <th>action</th>
+            </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/6.3.1/firebase-database.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/6.3.1/firebase-firestore.js"></script>
+
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyAwttWXBWjOYdjwSF33k7xojca7WOyOhU4",
+      authDomain: "folderkosong-sa1.firebaseapp.com",
+      databaseURL: "https://folderkosong-sa1.firebaseio.com",
+      projectId: "folderkosong-sa1",
+      storageBucket: "folderkosong-sa1.appspot.com",
+      messagingSenderId: "390517247960",
+      appId: "1:390517247960:web:484e07eccdc4ee4d"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    var tblUsers = document.getElementById('tabel_user');
+    var databaseRef = firebase.database().ref('users/');
+    var buttonAction = document.getElementById('saveData');
+
+    buttonAction.addEventListener('click', function () {
+        save_user();
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var elems = document.querySelectorAll('.modal');
+      var instances = M.Modal.init(elems);
+    });
+
+    var rowIndex = 1;
+
+    var firstName = document.getElementById('first_name').value;
+    var lastName = document.getElementById('last_name').value;
+    var email = document.getElementById('email').value;
+    var password = document.getElementById('password').value;
+
+    fetch();
+
+    function save_user() {
+      var uid = firebase.database().ref().child('users').push().key;
+
+      var data = {
+        user_id: uid,
+        first_name: firstName,
+        last_name: lastName,
+        email,
+        password,
+      }
+      var updates = {};
+
+      updates['/users/' + uid] = data;
+      // databaseRef.set({...data});
+      firebase.database().ref().update(updates);
+      alert('ths user is created');
+
+      reload_page();
+    }
+
+    function remove() {
+    }
+
+    function update() {
+    }
+
+    function reload_page() {
+      window.location.reload();
+    }
+
+    function fetch() {
+      databaseRef.once('value', function(snapshot) {
+        snapshot.forEach(function(childSnapshot) {
+          var childKey = childSnapshot.key;
+          var childData = childSnapshot.val();
+
+          var row = tblUsers.insertRow(rowIndex);
+          var cellId = row.insertCell(0);
+          var cellName = row.insertCell(1);
+          var cellEmail = row.insertCell(2);
+          var cellPassword = row.insertCell(3);
+          var cellAction = row.insertCell(4);
+
+          cellId.appendChild(document.createTextNode(childKey));
+          cellName.appendChild(document.createTextNode(`${childData.first_name} ${childData.last_name}`));
+          cellEmail.appendChild(document.createTextNode(childData.email));
+          cellPassword.appendChild(document.createTextNode(childData.password));
+
+          const button = document.createElement("button");
+          button.innerHTML = "update";
+
+          button.setAttribute("id", childKey);
+          button.setAttribute("onclick", `remove()` );
+
+          cellAction.appendChild(button);
+
+          rowIndex = rowIndex++;
+        });
+      });
+
+    }
+  </script>
+</body>
+
+</html>
